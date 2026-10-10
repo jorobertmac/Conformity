@@ -26,7 +26,7 @@
   };
 
   const DODE_COUNT = 16;
-  const RADIUS = 14;
+  const RADIUS = 5;                // starting radius (may change later based on factors)
   const ADJUST_STEP = 12;          // channel shift per strengthen/coerce (Influence later)
   const GAME_DURATION = 120;       // seconds until end evaluation
   const PAUSE_MIN = 0.25;           // movement pause after bump

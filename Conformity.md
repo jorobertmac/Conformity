@@ -64,6 +64,12 @@ A number between **1–5**.
 
 *(Change of speed / dynamic adjustment is not yet implemented.)*
 
+### Radius
+The visual and collision size of a Dode.
+
+All Dodes start with a radius of **5**.  
+*(Radius may later change based on various factors; not yet implemented.)*
+
 ---
 
 ## Game Start Setup
