@@ -85,9 +85,8 @@ The game is won when **any single Identity** reaches a target share of all livin
 
 - If the player’s Identity is the one that hits the threshold → **You Conform** (win).
 - If another Identity hits it first → **You Resist** (loss).
-- If time runs out (120 s) with no Identity at the threshold → **Time’s Up**.
 
-Percentages are evaluated continuously against the current total number of Dodes (including any offspring).
+Percentages are evaluated continuously against the current total number of Dodes (including any offspring). There is no time limit.
 
 ---
 
@@ -165,7 +164,7 @@ If the Dodes have different Identity colors:
 
 - **Click** anywhere on the screen to set the player Dode’s destination.
 - Choose difficulty (33% / 50% / 67% / 100%) on the start screen.
-- Game ends when an Identity hits the target share, or after **120 seconds**.
+- Game ends when an Identity hits the target share (no time limit).
 
 ---
 
