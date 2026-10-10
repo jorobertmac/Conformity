@@ -25,7 +25,7 @@
     Black:   [-1, -1, -1],
   };
 
-  const DODE_COUNT = 32;
+  const DODE_COUNT = 16;
   const RADIUS = 14;
   const ADJUST_STEP = 12;          // channel shift per strengthen/coerce (Influence later)
   const GAME_DURATION = 120;       // seconds until end evaluation
@@ -240,7 +240,7 @@
   function createEvenIdentities() {
     const list = [];
     for (const id of IDENTITY_COLORS) {
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 2; i++) { // two of each Identity
         const r = id.r === 255 ? randInt(128, 255) : randInt(0, 127);
         const g = id.g === 255 ? randInt(128, 255) : randInt(0, 127);
         const b = id.b === 255 ? randInt(128, 255) : randInt(0, 127);
@@ -264,7 +264,7 @@
     const usableH = Math.max(1, height - 2 * margin);
 
     // place in a loose grid to reduce initial overlaps
-    const cols = 8;
+    const cols = 4;
     const rows = 4;
     const cellW = usableW / cols;
     const cellH = usableH / rows;

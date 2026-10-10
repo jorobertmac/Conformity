@@ -68,9 +68,9 @@ A number between **1–5**.
 
 ## Game Start Setup
 
-1. The game begins with **32 Dodes** on a neutral background (chosen so all possible colors remain visible).
+1. The game begins with **16 Dodes** on a neutral background (chosen so all possible colors remain visible).
 2. Ideology values are distributed randomly to all Dodes.
-3. Dodes are then re-evaluated to ensure an **even distribution of Identity colors** (exactly **4 of each** of the 8 Identities).
+3. Dodes are then re-evaluated to ensure an **even distribution of Identity colors** (exactly **2 of each** of the 8 Identities).
 4. Each Dode’s Influence is randomly assigned between **45–55**.
 5. Computer Dodes start with Urgency **2**; the player Dode starts with Urgency **3**.
 
