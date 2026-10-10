@@ -97,8 +97,9 @@
       this.targetY = y;
       this.pauseUntil = 0;          // movement paused until (seconds)
       this.cooldownUntil = 0;       // invulnerable (no bump) until (seconds)
-      this.bumpCounts = new Map();  // partnerId → count
-      this.dodettePartner = null;   // id of exclusive Dodette partner
+      this.bumpCounts = new Map();  // partnerId → mutual bump count
+      this.dodettePartners = new Set(); // partner ids this Dode is a Dodette with
+      this.dodetteFormingNumber = 2; // bumps needed with a new partner to form a Dodette
       this.id = Dode.nextId++;
       this.radius = RADIUS;
     }
@@ -198,8 +199,8 @@
       ctx.fillStyle = `rgba(${this.ideology.r},${this.ideology.g},${this.ideology.b},${alpha * 0.75})`;
       ctx.fill();
 
-      // Dodette ring
-      if (this.dodettePartner !== null) {
+      // Dodette ring (has formed at least one Dodette)
+      if (this.dodettePartners.size > 0) {
         ctx.beginPath();
         ctx.arc(this.x, this.y, this.radius + 3.5, 0, Math.PI * 2);
         ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.7})`;
@@ -319,15 +320,19 @@
     b.bumpCounts.set(a.id, (b.bumpCounts.get(a.id) || 0) + 1);
 
     const count = a.bumpCounts.get(b.id);
-    if (count >= 3) {
-      if (a.dodettePartner === null && b.dodettePartner === null) {
-        a.dodettePartner = b.id;
-        b.dodettePartner = a.id;
+
+    // Form Dodette when both have bumped each other their own forming number of times
+    if (!a.dodettePartners.has(b.id) && !b.dodettePartners.has(a.id)) {
+      if (count >= a.dodetteFormingNumber && count >= b.dodetteFormingNumber) {
+        a.dodettePartners.add(b.id);
+        b.dodettePartners.add(a.id);
+        a.dodetteFormingNumber++;
+        b.dodetteFormingNumber++;
       }
     }
 
-    // Dodette offspring (only when already paired)
-    if (a.dodettePartner === b.id && b.dodettePartner === a.id) {
+    // Dodette offspring when this pair is already Dodettes
+    if (a.dodettePartners.has(b.id) && b.dodettePartners.has(a.id)) {
       const newIdeo = {
         r: averageRoundUp(a.ideology.r, b.ideology.r),
         g: averageRoundUp(a.ideology.g, b.ideology.g),
@@ -360,7 +365,6 @@
       } else if (b.conviction < a.conviction) {
         a.adjustToward(b.identity.name);
       }
-      // equal conviction → no coercion
     }
   }
 
