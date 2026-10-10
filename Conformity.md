@@ -128,6 +128,7 @@ Each Dode has its own **Dodette forming number** (starts at **2**).
       → (103, 148, 124)
   - **New Influence** = average of the two parent Influences (summed and divided by 2, rounded up).
   - The new Dode immediately begins moving (its own forming number starts at 2).
+- Each Dodette pair is shown with a **line** between them. If a Dode has several Dodette partners, one line is drawn to each. Line color is the Identity of the partner with **more conviction** (lower Conviction value).
 
 ### 3. Same Identity — Strengthening
 If both Dodes share the same Identity color, both **strengthen** their Identity by adjusting channels toward the pure form of that color:
@@ -159,6 +160,7 @@ If the Dodes have different Identity colors:
 | Different Identity Bump          | Lower-Conviction Dode coerces the other     |
 | Mutual bumps ≥ both forming #s   | Pair becomes Dodettes; each forming # +1    |
 | Existing Dodette pair Bumps      | New offspring Dode is spawned               |
+| Dodette pair (visual)            | Line between partners (color = more conviction) |
 | After any Bump                   | 0.25–0.75 s pause + 2–4 s invulnerability   |
 | Identity reaches target %        | Game ends (Conform or Resist)               |
 
