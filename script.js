@@ -28,11 +28,19 @@
   const DODE_COUNT = 16;
   const RADIUS = 5;                // starting radius (may change later based on factors)
   const ADJUST_STEP = 12;          // channel shift per strengthen/coerce (Influence later)
-  const GAME_DURATION = 120;       // seconds until end evaluation
+  const GAME_DURATION = 120;       // seconds until timeout if no one reaches threshold
   const PAUSE_MIN = 0.25;           // movement pause after bump
   const PAUSE_MAX = 0.75;
   const COOLDOWN_MIN = 2;          // invulnerability (no bump) after bump
   const COOLDOWN_MAX = 4;
+
+  // Win condition: share of Dodes of one Identity must reach this fraction
+  const DIFFICULTIES = {
+    Easy:     0.33,  // 33%
+    Medium:   0.50,  // 50%
+    Hard:     0.67,  // 67%
+    Extreme:  1.00,  // 100%
+  };
 
   // ─── Helpers ─────────────────────────────────────────────────
   function clamp(v, lo = 0, hi = 255) {
@@ -216,7 +224,6 @@
   const ctx = canvas.getContext("2d");
   const overlay = document.getElementById("overlay");
   const endScreen = document.getElementById("end-screen");
-  const startBtn = document.getElementById("start-btn");
   const restartBtn = document.getElementById("restart-btn");
 
   let dodes = [];
@@ -226,6 +233,8 @@
   let width = 0;
   let height = 0;
   let animId = 0;
+  let selectedDifficulty = "Medium";
+  let winThreshold = DIFFICULTIES.Medium;
 
   function resize() {
     width = window.innerWidth;
@@ -328,7 +337,7 @@
       };
       const newInf = averageRoundUp(a.influence, b.influence);
       // Urgency change not yet implemented; offspring use average of parents (clamped 1–5)
-      const newUrgency = Math.max(1, Math.min(5, averageRoundUp(a.urgency, b.urgency)));
+      const newUrgency = Math.max(1, Math.min(5, averageRoundUp(a.urgency, b.urgency));
       const child = new Dode(
         (a.x + b.x) / 2,
         (a.y + b.y) / 2,
@@ -369,42 +378,82 @@
     }
   }
 
-  // ─── HUD / legend ────────────────────────────────────────────
-  function buildLegend() {
-    const el = document.getElementById("legend");
-    if (!el) return;
-    el.innerHTML = IDENTITY_COLORS.map(c =>
-      `<span style="display:inline-block;width:12px;height:12px;border-radius:50%;background:rgb(${c.r},${c.g},${c.b});margin-right:4px;vertical-align:middle"></span>${c.name}`
-    ).join(" · ");
-  }
-
+  // ─── UI helpers ──────────────────────────────────────────────
   function updateHUD(now) {
+    const player = dodes.find(d => d.isPlayer);
+    if (player) {
+      document.getElementById("player-identity").textContent =
+        "Identity: " + player.identity.name;
+      document.getElementById("player-conviction").textContent =
+        "Conviction: " + player.conviction;
+    }
+    document.getElementById("dode-count").textContent = "Dodes: " + dodes.length;
     const elapsed = Math.max(0, Math.floor(now - startTime));
-    const left = Math.max(0, GAME_DURATION - elapsed);
-    const timer = document.getElementById("timer");
-    if (timer) timer.textContent = left + "s";
+    document.getElementById("time").textContent = "Time: " + elapsed + "s";
 
-    const counts = {};
-    for (const c of IDENTITY_COLORS) counts[c.name] = 0;
-    for (const d of dodes) counts[d.identity.name]++;
-    const countsEl = document.getElementById("counts");
-    if (countsEl) {
-      countsEl.innerHTML = IDENTITY_COLORS.map(c =>
-        `${c.name}: ${counts[c.name]}`
-      ).join(" · ");
+    const counts = countIdentities();
+    const total = Math.max(1, dodes.length);
+    let bestName = "—";
+    let bestPct = 0;
+    for (const name of Object.keys(counts)) {
+      const pct = counts[name] / total;
+      if (pct > bestPct) {
+        bestPct = pct;
+        bestName = name;
+      }
+    }
+    const targetEl = document.getElementById("target-pct");
+    if (targetEl) {
+      targetEl.textContent =
+        "Target: " + Math.round(winThreshold * 100) + "% · Lead: " +
+        bestName + " " + Math.round(bestPct * 100) + "%";
     }
   }
 
-  function endGame() {
-    running = false;
-    if (animId) cancelAnimationFrame(animId);
+  function buildLegend() {
+    const legend = document.getElementById("legend");
+    legend.innerHTML = "";
+    for (const c of IDENTITY_COLORS) {
+      const item = document.createElement("div");
+      item.className = "legend-item";
+      const swatch = document.createElement("div");
+      swatch.className = "legend-swatch";
+      swatch.style.background = "rgb(" + c.r + "," + c.g + "," + c.b + ")";
+      item.appendChild(swatch);
+      item.appendChild(document.createTextNode(c.name));
+      legend.appendChild(item);
+    }
+  }
 
+  function countIdentities() {
     const counts = {};
     for (const c of IDENTITY_COLORS) counts[c.name] = 0;
     for (const d of dodes) counts[d.identity.name]++;
+    return counts;
+  }
 
-    let max = 0;
-    let dominant = "";
+  /** Returns the Identity name that has reached the win threshold, or null. */
+  function identityAtThreshold() {
+    const counts = countIdentities();
+    const total = dodes.length;
+    if (total <= 0) return null;
+    for (const name of Object.keys(counts)) {
+      if (counts[name] / total >= winThreshold) return name;
+    }
+    return null;
+  }
+
+  function endGame(reason) {
+    running = false;
+    if (animId) cancelAnimationFrame(animId);
+
+    const counts = countIdentities();
+    const player = dodes.find(d => d.isPlayer);
+    const playerName = player ? player.identity.name : "—";
+    const total = Math.max(1, dodes.length);
+
+    let dominant = null;
+    let max = -1;
     for (const name of Object.keys(counts)) {
       if (counts[name] > max) {
         max = counts[name];
@@ -412,22 +461,30 @@
       }
     }
 
-    const player = dodes.find(d => d.isPlayer);
-    const playerName = player ? player.identity.name : "?";
-
     const title = document.getElementById("end-title");
-    const msg = document.getElementById("end-msg");
-    if (playerName === dominant) {
+    const msg = document.getElementById("end-message");
+    const pct = Math.round((max / total) * 100);
+    const targetPct = Math.round(winThreshold * 100);
+
+    if (reason === "threshold" && playerName === dominant) {
       title.textContent = "You Conform";
-      msg.textContent = playerName + " dominates with " + max + " Dodes. You are the color of dominance.";
-    } else {
+      msg.textContent =
+        playerName + " reached " + pct + "% (target " + targetPct + "%). You are the color of dominance.";
+    } else if (reason === "threshold") {
       title.textContent = "You Resist";
-      msg.textContent = dominant + " dominates with " + max + " Dodes. Your Identity is " + playerName + ".";
+      msg.textContent =
+        dominant + " reached " + pct + "% (target " + targetPct + "%). Your Identity is " + playerName + ".";
+    } else {
+      // timeout — no Identity hit the threshold
+      title.textContent = "Time's Up";
+      msg.textContent =
+        "No Identity reached " + targetPct + "%. Lead: " + dominant + " at " + pct +
+        "%. Your Identity is " + playerName + ".";
     }
 
     const lines = Object.keys(counts)
       .sort((a, b) => counts[b] - counts[a])
-      .map(n => n + ": " + counts[n])
+      .map(n => n + ": " + counts[n] + " (" + Math.round((counts[n] / total) * 100) + "%)")
       .join(" · ");
     msg.innerHTML += "<br><br><span style=\"opacity:0.7;font-size:0.9em\">" + lines + "</span>";
 
@@ -450,8 +507,13 @@
     checkCollisions(now);
     updateHUD(now);
 
+    const winner = identityAtThreshold();
+    if (winner) {
+      endGame("threshold");
+      return;
+    }
     if (now - startTime >= GAME_DURATION) {
-      endGame();
+      endGame("timeout");
       return;
     }
 
@@ -477,10 +539,14 @@
   });
 
   // ─── Start / Restart ─────────────────────────────────────────
-  function startGame() {
+  function startGame(difficultyName) {
     try {
+      if (difficultyName && DIFFICULTIES[difficultyName] != null) {
+        selectedDifficulty = difficultyName;
+        winThreshold = DIFFICULTIES[difficultyName];
+      }
       if (animId) cancelAnimationFrame(animId);
-      resize(); // ensure canvas has current size
+      resize();
       overlay.classList.add("hidden");
       endScreen.classList.add("hidden");
       spawnDodes();
@@ -496,8 +562,10 @@
     }
   }
 
-  startBtn.addEventListener("click", startGame);
-  restartBtn.addEventListener("click", startGame);
+  document.querySelectorAll("[data-difficulty]").forEach(btn => {
+    btn.addEventListener("click", () => startGame(btn.getAttribute("data-difficulty")));
+  });
+  restartBtn.addEventListener("click", () => startGame(selectedDifficulty));
 
   // safety: if DOM is already ready, nothing more needed
 })();
