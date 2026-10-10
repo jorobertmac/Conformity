@@ -4,7 +4,7 @@
 
 In **Conformity**, the player controls a **Dode** — a circle that starts as one of the 8 Identity colors. The player clicks on the screen to move their Dode to that location. Along the path, the Dode will **Bump** into other Dodes that are moving to random locations. During Bumps, color properties transfer according to each Dode’s characteristics.
 
-**Goal:** Be the color of dominance at the end of the game.
+**Goal:** Make your Identity reach the target percentage of all Dodes (set by difficulty).
 
 ---
 
@@ -72,6 +72,25 @@ All Dodes start with a radius of **5**.
 
 ---
 
+## Win Condition & Difficulty
+
+The game is won when **any single Identity** reaches a target share of all living Dodes. That threshold is set by difficulty:
+
+| Difficulty | Target share |
+|------------|--------------|
+| Easy       | **33%**      |
+| Medium     | **50%**      |
+| Hard       | **67%**      |
+| Extreme    | **100%**     |
+
+- If the player’s Identity is the one that hits the threshold → **You Conform** (win).
+- If another Identity hits it first → **You Resist** (loss).
+- If time runs out (120 s) with no Identity at the threshold → **Time’s Up**.
+
+Percentages are evaluated continuously against the current total number of Dodes (including any offspring).
+
+---
+
 ## Game Start Setup
 
 1. The game begins with **16 Dodes** on a neutral background (chosen so all possible colors remain visible).
@@ -79,8 +98,9 @@ All Dodes start with a radius of **5**.
 3. Dodes are then re-evaluated to ensure an **even distribution of Identity colors** (exactly **2 of each** of the 8 Identities).
 4. Each Dode’s Influence is randomly assigned between **45–55**.
 5. Computer Dodes start with Urgency **2**; the player Dode starts with Urgency **3**.
+6. All Dodes start with radius **5**.
 
-The player starts as one of the 8 Identity colors and moves by clicking destinations on the screen.
+The player starts as one of the 8 Identity colors and moves by clicking destinations on the screen. Choose a difficulty before beginning.
 
 ---
 
@@ -136,11 +156,17 @@ If the Dodes have different Identity colors:
 | Different Identity Bump          | Lower-Conviction Dode coerces the other     |
 | Three mutual Bumps               | Pair becomes Dodettes                       |
 | Dodettes Bump                    | New offspring Dode is spawned               |
+| After any Bump                   | 0.25–0.75 s pause + 2–4 s invulnerability   |
+| Identity reaches target %        | Game ends (Conform or Resist)               |
 
 ---
 
 ## Controls
 
 - **Click** anywhere on the screen to set the player Dode’s destination.
-- Movement continues until the destination is reached or a new click overrides it.
-- Game lasts **120 seconds**; at the end, the Identity color with the most Dodes wins.
+- Choose difficulty (33% / 50% / 67% / 100%) on the start screen.
+- Game ends when an Identity hits the target share, or after **120 seconds**.
+
+---
+
+*Play to Conform. Or resist.*

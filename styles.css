@@ -117,6 +117,28 @@ button:hover {
   border-color: #ccc;
 }
 
+.difficulty-label {
+  margin-top: 8px;
+  font-size: 0.95rem;
+  opacity: 0.7;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+#difficulty-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  max-width: 420px;
+}
+
+#difficulty-buttons button {
+  margin-top: 0;
+  padding: 10px 18px;
+  font-size: 0.9rem;
+}
+
 .hidden {
   display: none !important;
 }
