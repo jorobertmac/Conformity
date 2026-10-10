@@ -380,6 +380,31 @@
     }
   }
 
+  /** Draw a line between each Dodette pair; color = Identity of the more-convicted Dode. */
+  function drawDodetteLinks(ctx) {
+    const byId = new Map();
+    for (const d of dodes) byId.set(d.id, d);
+
+    for (const a of dodes) {
+      for (const partnerId of a.dodettePartners) {
+        if (partnerId <= a.id) continue; // draw each pair once
+        const b = byId.get(partnerId);
+        if (!b) continue;
+
+        // more conviction = lower Conviction value
+        const lead = a.conviction <= b.conviction ? a : b;
+        const c = lead.identity;
+
+        ctx.beginPath();
+        ctx.moveTo(a.x, a.y);
+        ctx.lineTo(b.x, b.y);
+        ctx.strokeStyle = `rgba(${c.r},${c.g},${c.b},0.55)`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+    }
+  }
+
   // ─── UI helpers ──────────────────────────────────────────────
   function updateHUD(now) {
     const player = dodes.find(d => d.isPlayer);
@@ -510,6 +535,8 @@
     // clear
     ctx.fillStyle = "#1a1a1a";
     ctx.fillRect(0, 0, width, height);
+
+    drawDodetteLinks(ctx);
 
     for (let i = 0; i < dodes.length; i++) {
       dodes[i].draw(ctx, now);
