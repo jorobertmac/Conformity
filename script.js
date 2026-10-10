@@ -28,7 +28,6 @@
   const DODE_COUNT = 16;
   const RADIUS = 5;                // starting radius (may change later based on factors)
   const ADJUST_STEP = 12;          // channel shift per strengthen/coerce (Influence later)
-  const GAME_DURATION = 120;       // seconds until timeout if no one reaches threshold
   const PAUSE_MIN = 0.25;           // movement pause after bump
   const PAUSE_MAX = 0.75;
   const COOLDOWN_MIN = 2;          // invulnerability (no bump) after bump
@@ -228,7 +227,6 @@
 
   let dodes = [];
   let running = false;
-  let startTime = 0;
   let lastNow = 0;
   let width = 0;
   let height = 0;
@@ -388,8 +386,6 @@
         "Conviction: " + player.conviction;
     }
     document.getElementById("dode-count").textContent = "Dodes: " + dodes.length;
-    const elapsed = Math.max(0, Math.floor(now - startTime));
-    document.getElementById("time").textContent = "Time: " + elapsed + "s";
 
     const counts = countIdentities();
     const total = Math.max(1, dodes.length);
@@ -466,20 +462,14 @@
     const pct = Math.round((max / total) * 100);
     const targetPct = Math.round(winThreshold * 100);
 
-    if (reason === "threshold" && playerName === dominant) {
+    if (playerName === dominant) {
       title.textContent = "You Conform";
       msg.textContent =
         playerName + " reached " + pct + "% (target " + targetPct + "%). You are the color of dominance.";
-    } else if (reason === "threshold") {
+    } else {
       title.textContent = "You Resist";
       msg.textContent =
         dominant + " reached " + pct + "% (target " + targetPct + "%). Your Identity is " + playerName + ".";
-    } else {
-      // timeout — no Identity hit the threshold
-      title.textContent = "Time's Up";
-      msg.textContent =
-        "No Identity reached " + targetPct + "%. Lead: " + dominant + " at " + pct +
-        "%. Your Identity is " + playerName + ".";
     }
 
     const lines = Object.keys(counts)
@@ -510,10 +500,6 @@
     const winner = identityAtThreshold();
     if (winner) {
       endGame("threshold");
-      return;
-    }
-    if (now - startTime >= GAME_DURATION) {
-      endGame("timeout");
       return;
     }
 
@@ -552,9 +538,7 @@
       spawnDodes();
       buildLegend();
       running = true;
-      const t = performance.now() / 1000;
-      startTime = t;
-      lastNow = t;
+      lastNow = performance.now() / 1000;
       animId = requestAnimationFrame(frame);
     } catch (err) {
       console.error("Start failed:", err);
