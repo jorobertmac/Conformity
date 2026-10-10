@@ -1,0 +1,122 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #1a1a1a;
+  overflow: hidden;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  color: #e0e0e0;
+  user-select: none;
+}
+
+#game {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  cursor: crosshair;
+}
+
+#ui {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  pointer-events: none;
+  z-index: 10;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent);
+}
+
+#stats {
+  display: flex;
+  gap: 24px;
+  font-size: 14px;
+  letter-spacing: 0.03em;
+}
+
+#stats span {
+  background: rgba(0,0,0,0.4);
+  padding: 4px 10px;
+  border-radius: 4px;
+}
+
+#legend {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  max-width: 280px;
+  justify-content: flex-end;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  background: rgba(0,0,0,0.4);
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+.legend-swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.3);
+}
+
+#overlay, #end-screen {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10,10,10,0.85);
+  z-index: 20;
+  text-align: center;
+  gap: 16px;
+}
+
+#overlay h1, #end-screen h1 {
+  font-size: 3rem;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+#overlay p, #end-screen p {
+  font-size: 1.1rem;
+  opacity: 0.8;
+  max-width: 360px;
+  line-height: 1.5;
+}
+
+button {
+  margin-top: 12px;
+  padding: 12px 36px;
+  font-size: 1rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  background: transparent;
+  color: #e0e0e0;
+  border: 1px solid #888;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+}
+
+button:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: #ccc;
+}
+
+.hidden {
+  display: none !important;
+}
