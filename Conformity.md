@@ -114,8 +114,12 @@ When two Dodes collide (a **Bump**), the following occurs:
 - The two timers run independently; a Dode may resume moving while still invulnerable.
 
 ### 2. Dodette Formation & Offspring
-- The first time two specific Dodes Bump each other **three times**, they become **Dodettes**, provided neither already holds Dodette status with a different partner.
-- When two Dodettes Bump:
+Each Dode has its own **Dodette forming number** (starts at **2**).
+
+- Two Dodes become **Dodettes** with each other when their mutual Bump count reaches **both** of their current Dodette forming numbers.
+- After forming a Dodette, each Dode’s forming number increases by **1** (2 → 3 → 4 …).
+- A Dode may form Dodettes with multiple partners over time; each new partnership uses that Dode’s current forming number.
+- When two Dodes who are already Dodettes with each other Bump:
   - A **new Dode** is spawned at the Bump location.
   - **New Ideology** = average of the two parent Ideologies (each channel summed and divided by 2, rounded up).
     - Example:  
@@ -123,7 +127,7 @@ When two Dodes collide (a **Bump**), the following occurs:
       → ((122+84)/2, (95+200)/2, (230+18)/2)  
       → (103, 148, 124)
   - **New Influence** = average of the two parent Influences (summed and divided by 2, rounded up).
-  - The new Dode immediately begins moving.
+  - The new Dode immediately begins moving (its own forming number starts at 2).
 
 ### 3. Same Identity — Strengthening
 If both Dodes share the same Identity color, both **strengthen** their Identity by adjusting channels toward the pure form of that color:
@@ -153,8 +157,8 @@ If the Dodes have different Identity colors:
 |----------------------------------|---------------------------------------------|
 | Same Identity Bump               | Both strengthen toward pure Identity        |
 | Different Identity Bump          | Lower-Conviction Dode coerces the other     |
-| Three mutual Bumps               | Pair becomes Dodettes                       |
-| Dodettes Bump                    | New offspring Dode is spawned               |
+| Mutual bumps ≥ both forming #s   | Pair becomes Dodettes; each forming # +1    |
+| Existing Dodette pair Bumps      | New offspring Dode is spawned               |
 | After any Bump                   | 0.25–0.75 s pause + 2–4 s invulnerability   |
 | Identity reaches target %        | Game ends (Conform or Resist)               |
 
