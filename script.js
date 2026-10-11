@@ -209,15 +209,6 @@
       ctx.fillStyle = `rgba(${this.ideology.r},${this.ideology.g},${this.ideology.b},${alpha * 0.75})`;
       ctx.fill();
 
-      // Dodette ring (has formed at least one Dodette)
-      if (this.dodettePartners.size > 0) {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.radius + 3.5, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(255,255,255,${alpha * 0.7})`;
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
-      }
-
       // player outline
       if (this.isPlayer) {
         ctx.beginPath();
