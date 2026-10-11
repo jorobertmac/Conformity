@@ -454,7 +454,7 @@
       };
       const newInf = averageRoundUp(a.influence, b.influence);
       // Urgency change not yet implemented; offspring use average of parents (clamped 1–5)
-      const newUrgency = Math.max(1, Math.min(5, averageRoundUp(a.urgency, b.urgency));
+      const newUrgency = Math.max(1, Math.min(5, averageRoundUp(a.urgency, b.urgency)));
       const child = new Dode(
         (a.x + b.x) / 2,
         (a.y + b.y) / 2,
