@@ -303,15 +303,17 @@
 
   // ─── Avoidance / obstacles ───────────────────────────────────
   /**
-   * Build solid obstacles for steering. Today: other Dodes as circles.
-   * Later: Walls, Boxes, Rooms, Boundaries can push into this list
+   * Build solid obstacles for steering.
+   * Active, vulnerable Dodes are NOT obstacles — they must be able to close
+   * distance and Bump. Paused / invulnerable Dodes are solid (others steer
+   * around their radius). Later: Walls, Boxes, Rooms, Boundaries always go here
    * (e.g. { type: "circle"|"aabb"|"segment", ... }).
-   * Paused and invulnerable Dodes remain solid so others steer around them.
    */
-  function collectObstacles(excludeId) {
+  function collectObstacles(excludeId, now) {
     const list = [];
     for (const d of dodes) {
       if (d.id === excludeId) continue;
+      if (!d.isPaused(now) && !d.isInvulnerable(now)) continue;
       list.push({
         type: "circle",
         x: d.x,
@@ -452,7 +454,7 @@
       };
       const newInf = averageRoundUp(a.influence, b.influence);
       // Urgency change not yet implemented; offspring use average of parents (clamped 1–5)
-      const newUrgency = Math.max(1, Math.min(5, averageRoundUp(a.urgency, b.urgency)));
+      const newUrgency = Math.max(1, Math.min(5, averageRoundUp(a.urgency, b.urgency));
       const child = new Dode(
         (a.x + b.x) / 2,
         (a.y + b.y) / 2,
@@ -634,7 +636,7 @@
     lastNow = now;
 
     for (let i = 0; i < dodes.length; i++) {
-      const obstacles = collectObstacles(dodes[i].id);
+      const obstacles = collectObstacles(dodes[i].id, now);
       dodes[i].update(dt, now, width, height, obstacles);
     }
     // Detect Bumps on contact, then force bodies apart so nothing passes through
