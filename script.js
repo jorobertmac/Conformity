@@ -32,6 +32,8 @@
   const PAUSE_MAX = 0.75;
   const COOLDOWN_MIN = 2;          // invulnerability (no bump) after bump
   const COOLDOWN_MAX = 4;
+  const AVOID_MARGIN = 2;          // gap kept between solid radii
+  const AVOID_LOOKAHEAD = 28;      // extra range to start steering around obstacles
 
   // Win condition: share of Dodes of one Identity must reach this fraction
   const DIFFICULTIES = {
@@ -137,7 +139,11 @@
       this.cooldownUntil = now + rand(COOLDOWN_MIN, COOLDOWN_MAX);
     }
 
-    update(dt, now, w, h) {
+    /**
+     * Move toward target while steering around circular obstacles.
+     * Obstacles come from other Dodes (and later Walls/Boxes/Rooms/Boundaries).
+     */
+    update(dt, now, w, h, obstacles) {
       if (this.isPaused(now)) return;
 
       const dx = this.targetX - this.x;
@@ -149,17 +155,21 @@
         return;
       }
 
+      const dir = steerDirection(
+        this.x, this.y, this.targetX, this.targetY, this.radius, obstacles
+      );
+
       const step = this.speed * dt;
-      if (step >= d) {
+      if (step >= d && dir.straight) {
         this.x = this.targetX;
         this.y = this.targetY;
         if (!this.isPlayer) this.pickRandomTarget(w, h);
       } else {
-        this.x += (dx / d) * step;
-        this.y += (dy / d) * step;
+        this.x += dir.x * step;
+        this.y += dir.y * step;
       }
 
-      // keep inside bounds
+      // keep inside bounds (playfield boundary as a hard constraint)
       const m = this.radius;
       this.x = Math.max(m, Math.min(w - m, this.x));
       this.y = Math.max(m, Math.min(h - m, this.y));
@@ -291,29 +301,131 @@
     }
   }
 
-  // ─── Bump handling ───────────────────────────────────────────
-  function separate(a, b) {
-    const dx = b.x - a.x;
-    const dy = b.y - a.y;
-    let d = Math.sqrt(dx * dx + dy * dy) || 0.001;
-    const minDist = a.radius + b.radius + 2;
-    if (d < minDist) {
-      const push = (minDist - d) / 2;
-      const nx = dx / d;
-      const ny = dy / d;
-      a.x -= nx * push;
-      a.y -= ny * push;
-      b.x += nx * push;
-      b.y += ny * push;
+  // ─── Avoidance / obstacles ───────────────────────────────────
+  /**
+   * Build solid obstacles for steering. Today: other Dodes as circles.
+   * Later: Walls, Boxes, Rooms, Boundaries can push into this list
+   * (e.g. { type: "circle"|"aabb"|"segment", ... }).
+   * Paused and invulnerable Dodes remain solid so others steer around them.
+   */
+  function collectObstacles(excludeId) {
+    const list = [];
+    for (const d of dodes) {
+      if (d.id === excludeId) continue;
+      list.push({
+        type: "circle",
+        x: d.x,
+        y: d.y,
+        radius: d.radius,
+        sourceId: d.id,
+      });
+    }
+    return list;
+  }
+
+  /**
+   * Steer toward (tx, ty) while sliding around nearby circle obstacles.
+   * Returns a unit vector { x, y, straight } (straight=true if no avoidance applied).
+   */
+  function steerDirection(x, y, tx, ty, selfRadius, obstacles) {
+    let dx = tx - x;
+    let dy = ty - y;
+    let len = Math.sqrt(dx * dx + dy * dy) || 1;
+    let fx = dx / len;
+    let fy = dy / len;
+    let steered = false;
+
+    for (let i = 0; i < obstacles.length; i++) {
+      const o = obstacles[i];
+      if (o.type !== "circle") continue; // future aabb/segment handlers here
+
+      const ox = o.x - x;
+      const oy = o.y - y;
+      const od = Math.sqrt(ox * ox + oy * oy) || 0.001;
+      const combined = selfRadius + o.radius + AVOID_MARGIN;
+      const influence = combined + AVOID_LOOKAHEAD;
+      if (od >= influence) continue;
+
+      // ignore obstacles clearly behind
+      const ahead = (ox * fx + oy * fy);
+      if (ahead < -selfRadius) continue;
+
+      steered = true;
+      // perpendicular — pick side based on which way the obstacle sits
+      let lx = -fy;
+      let ly = fx;
+      const cross = ox * fy - oy * fx;
+      if (cross < 0) {
+        lx = -lx;
+        ly = -ly;
+      }
+
+      const proximity = 1 - (od / influence);
+      const weight = proximity * proximity * 1.6;
+      fx += lx * weight;
+      fy += ly * weight;
+      // mild repulsion so we don't sit on the rim
+      fx -= (ox / od) * weight * 0.35;
+      fy -= (oy / od) * weight * 0.35;
+    }
+
+    const fl = Math.sqrt(fx * fx + fy * fy) || 1;
+    return { x: fx / fl, y: fy / fl, straight: !steered };
+  }
+
+  /**
+   * Hard separation so Dodes never occupy the same space.
+   * Paused Dodes are treated as fixed; only the moving partner is pushed.
+   */
+  function resolveOverlaps(now) {
+    for (let i = 0; i < dodes.length; i++) {
+      for (let j = i + 1; j < dodes.length; j++) {
+        const a = dodes[i];
+        const b = dodes[j];
+        const dx = b.x - a.x;
+        const dy = b.y - a.y;
+        let d = Math.sqrt(dx * dx + dy * dy) || 0.001;
+        // hard body contact — no pass-through (AVOID_MARGIN is for soft steering only)
+        const minDist = a.radius + b.radius;
+        if (d >= minDist) continue;
+
+        const nx = dx / d;
+        const ny = dy / d;
+        const overlap = minDist - d;
+        const aPaused = a.isPaused(now);
+        const bPaused = b.isPaused(now);
+
+        if (aPaused && !bPaused) {
+          b.x += nx * overlap;
+          b.y += ny * overlap;
+        } else if (bPaused && !aPaused) {
+          a.x -= nx * overlap;
+          a.y -= ny * overlap;
+        } else {
+          const half = overlap / 2;
+          a.x -= nx * half;
+          a.y -= ny * half;
+          b.x += nx * half;
+          b.y += ny * half;
+        }
+
+        // clamp to playfield after push
+        const ma = a.radius;
+        const mb = b.radius;
+        a.x = Math.max(ma, Math.min(width - ma, a.x));
+        a.y = Math.max(ma, Math.min(height - ma, a.y));
+        b.x = Math.max(mb, Math.min(width - mb, b.x));
+        b.y = Math.max(mb, Math.min(height - mb, b.y));
+      }
     }
   }
 
+  // ─── Bump handling ───────────────────────────────────────────
   function handleBump(a, b, now) {
     if (a.isInvulnerable(now) || b.isInvulnerable(now)) return;
 
     a.startBumpEffects(now);
     b.startBumpEffects(now);
-    separate(a, b);
 
     // mutual bump count & Dodette formation
     a.bumpCounts.set(b.id, (a.bumpCounts.get(b.id) || 0) + 1);
@@ -373,7 +485,8 @@
       for (let j = i + 1; j < dodes.length; j++) {
         const a = dodes[i];
         const b = dodes[j];
-        if (dist(a, b) < a.radius + b.radius) {
+        // Bump when solid radii touch or slightly overlap (before/as separation runs)
+        if (dist(a, b) < a.radius + b.radius + 0.75) {
           handleBump(a, b, now);
         }
       }
@@ -521,9 +634,12 @@
     lastNow = now;
 
     for (let i = 0; i < dodes.length; i++) {
-      dodes[i].update(dt, now, width, height);
+      const obstacles = collectObstacles(dodes[i].id);
+      dodes[i].update(dt, now, width, height, obstacles);
     }
+    // Detect Bumps on contact, then force bodies apart so nothing passes through
     checkCollisions(now);
+    resolveOverlaps(now);
     updateHUD(now);
 
     const winner = identityAtThreshold();
