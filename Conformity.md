@@ -103,15 +103,27 @@ The player starts as one of the 8 Identity colors and moves by clicking destinat
 
 ---
 
+## Movement & Avoidance
+
+Dodes do **not** pass through each other. Each Dode has a solid radius and steers around other Dodes while moving toward its destination.
+
+- **Avoidance:** Moving Dodes path around nearby solid radii (slide past, then continue toward the target).
+- **Hard separation:** Overlaps are resolved so bodies never occupy the same space.
+- **Paused / invulnerable Dodes** still occupy space: others steer around their invisible solid radius, but they cannot receive a new Bump while invulnerable.
+- The same obstacle system is meant to support future **Walls, Boxes, Rooms, Boundaries**, and other solids.
+
+---
+
 ## Bump Mechanics
 
-When two Dodes collide (a **Bump**), the following occurs:
+When two Dodes’ solid radii make contact (a **Bump**), the following occurs:
 
 ### 1. Pause & Cooldown
 - Immediately after a Bump, both Dodes are affected by two independent timers:
   - **Pause** (movement stopped): random duration between **0.25–0.75 seconds**.
   - **Cooldown** (invulnerability — cannot be Bumped again): random duration between **2–4 seconds**.
 - The two timers run independently; a Dode may resume moving while still invulnerable.
+- While paused or invulnerable, the Dode remains a solid obstacle for others.
 
 ### 2. Dodette Formation & Offspring
 Each Dode has its own **Dodette forming number** (starts at **2**).
@@ -162,6 +174,8 @@ If the Dodes have different Identity colors:
 | Existing Dodette pair Bumps      | New offspring Dode is spawned               |
 | Dodette pair (visual)            | Line between partners (color = more conviction) |
 | After any Bump                   | 0.25–0.75 s pause + 2–4 s invulnerability   |
+| Nearby solid radius              | Steer around; no pass-through               |
+| Paused / invulnerable Dode       | Solid obstacle; no new Bump while invuln    |
 | Identity reaches target %        | Game ends (Conform or Resist)               |
 
 ---
