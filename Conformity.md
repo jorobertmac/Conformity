@@ -105,12 +105,13 @@ The player starts as one of the 8 Identity colors and moves by clicking destinat
 
 ## Movement & Avoidance
 
-Dodes do **not** pass through each other. Each Dode has a solid radius and steers around other Dodes while moving toward its destination.
+Dodes do **not** pass through each other. Bodies have a solid radius; overlaps are pushed apart.
 
-- **Avoidance:** Moving Dodes path around nearby solid radii (slide past, then continue toward the target).
+- **Bumps between active Dodes:** Two Dodes that are neither paused nor invulnerable may close distance and **Bump** on contact. Avoidance does not steer them away from each other beforehand.
+- **Avoidance:** Moving Dodes steer around **paused** or **invulnerable** Dodes (and future static solids), then continue toward their target.
 - **Hard separation:** Overlaps are resolved so bodies never occupy the same space.
-- **Paused / invulnerable Dodes** still occupy space: others steer around their invisible solid radius, but they cannot receive a new Bump while invulnerable.
-- The same obstacle system is meant to support future **Walls, Boxes, Rooms, Boundaries**, and other solids.
+- **Paused / invulnerable Dodes** still occupy space: others steer around their solid radius; they cannot receive a new Bump while invulnerable.
+- The same obstacle list is meant to support future **Walls, Boxes, Rooms, Boundaries**, and other solids.
 
 ---
 
@@ -174,8 +175,9 @@ If the Dodes have different Identity colors:
 | Existing Dodette pair Bumps      | New offspring Dode is spawned               |
 | Dodette pair (visual)            | Line between partners (color = more conviction) |
 | After any Bump                   | 0.25–0.75 s pause + 2–4 s invulnerability   |
-| Nearby solid radius              | Steer around; no pass-through               |
-| Paused / invulnerable Dode       | Solid obstacle; no new Bump while invuln    |
+| Active + active contact          | Bump (avoidance does not block approach)    |
+| Paused / invulnerable Dode       | Solid obstacle others steer around          |
+| Overlap                          | Hard separation; no pass-through            |
 | Identity reaches target %        | Game ends (Conform or Resist)               |
 
 ---
