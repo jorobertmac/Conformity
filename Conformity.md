@@ -184,9 +184,10 @@ If the Dodes have different Identity colors:
 
 ## Controls
 
-- **Click** anywhere on the screen to set the player Dode’s destination.
+- **Tap** (mobile) or **click** (desktop) anywhere on the screen to set the player Dode’s destination.
 - Choose difficulty (33% / 50% / 67% / 100%) on the start screen.
 - Game ends when an Identity hits the target share (no time limit).
+- Layout and input are optimized for mobile and desktop (touch + mouse, safe areas, crisp canvas).
 
 ---
 
