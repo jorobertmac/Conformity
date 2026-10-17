@@ -237,12 +237,21 @@
   let winThreshold = DIFFICULTIES.Medium;
 
   function resize() {
-    width = window.innerWidth;
-    height = window.innerHeight;
-    canvas.width = width;
-    canvas.height = height;
+    // Logical (CSS) size used by game math; buffer scaled for sharp retina/mobile displays
+    width = Math.max(1, window.innerWidth);
+    height = Math.max(1, window.innerHeight);
+    const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    canvas.style.width = width + "px";
+    canvas.style.height = height + "px";
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   }
   window.addEventListener("resize", resize);
+  window.addEventListener("orientationchange", () => setTimeout(resize, 50));
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener("resize", resize);
+  }
   resize();
 
   // ─── Setup ───────────────────────────────────────────────────
@@ -654,15 +663,36 @@
     animId = requestAnimationFrame(frame);
   }
 
-  // ─── Input ───────────────────────────────────────────────────
-  canvas.addEventListener("click", function (e) {
+  // ─── Input (mouse, touch, pen via Pointer Events) ─────────────
+  function setPlayerTargetFromEvent(e) {
     if (!running) return;
     const player = dodes.find(d => d.isPlayer);
     if (!player) return;
-    // allow setting a new target even while cooling (movement just stays paused)
+    // Map client coords to logical game space (matches CSS size after DPR transform)
     const rect = canvas.getBoundingClientRect();
-    player.setTarget(e.clientX - rect.left, e.clientY - rect.top);
-  });
+    const scaleX = width / (rect.width || 1);
+    const scaleY = height / (rect.height || 1);
+    const x = (e.clientX - rect.left) * scaleX;
+    const y = (e.clientY - rect.top) * scaleY;
+    player.setTarget(x, y);
+  }
+
+  canvas.addEventListener("pointerdown", function (e) {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    e.preventDefault();
+    setPlayerTargetFromEvent(e);
+  }, { passive: false });
+
+  // Fallback for older browsers without Pointer Events
+  if (!window.PointerEvent) {
+    canvas.addEventListener("click", setPlayerTargetFromEvent);
+    canvas.addEventListener("touchstart", function (e) {
+      if (!e.changedTouches || !e.changedTouches.length) return;
+      e.preventDefault();
+      const t = e.changedTouches[0];
+      setPlayerTargetFromEvent({ clientX: t.clientX, clientY: t.clientY });
+    }, { passive: false });
+  }
 
   // ─── Start / Restart ─────────────────────────────────────────
   function startGame(difficultyName) {
