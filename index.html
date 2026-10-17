@@ -2,7 +2,10 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#1a1a1a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
   <title>Conformity</title>
   <link rel="stylesheet" href="styles.css">
   <script src="script.js" defer></script>
@@ -20,20 +23,20 @@
   <canvas id="game"></canvas>
   <div id="overlay">
     <h1>Conformity</h1>
-    <p>Click to move your Dode. Bump others.<br>
+    <p>Tap or click to move your Dode. Bump others.<br>
        Win by making your Identity reach the target share of all Dodes.</p>
     <p class="difficulty-label">Choose difficulty</p>
     <div id="difficulty-buttons">
-      <button data-difficulty="Easy">Easy · 33%</button>
-      <button data-difficulty="Medium">Medium · 50%</button>
-      <button data-difficulty="Hard">Hard · 67%</button>
-      <button data-difficulty="Extreme">Extreme · 100%</button>
+      <button type="button" data-difficulty="Easy">Easy · 33%</button>
+      <button type="button" data-difficulty="Medium">Medium · 50%</button>
+      <button type="button" data-difficulty="Hard">Hard · 67%</button>
+      <button type="button" data-difficulty="Extreme">Extreme · 100%</button>
     </div>
   </div>
   <div id="end-screen" class="hidden">
     <h1 id="end-title">Game Over</h1>
     <p id="end-message"></p>
-    <button id="restart-btn">Play Again</button>
+    <button type="button" id="restart-btn">Play Again</button>
   </div>
 </body>
 </html>
